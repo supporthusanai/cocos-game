@@ -3,108 +3,126 @@ import Card from '../models/Card';
 import { ICard, CardType, CardRarity } from '../types';
 
 class CardService {
-  async initializeCards(): Promise<void> {
-    const count = await Card.countDocuments();
-    if (count > 0) {
-      console.log('Cards already initialized');
-      return;
+  private defaultCards = [
+    {
+      cardId: 'card_001',
+      name: '火焰法师',
+      type: CardType.CREATURE,
+      attack: 3,
+      defense: 2,
+      cost: 3,
+      rarity: CardRarity.COMMON,
+      description: '一个掌握火焰魔法的法师'
+    },
+    {
+      cardId: 'card_002',
+      name: '冰霜骑士',
+      type: CardType.CREATURE,
+      attack: 4,
+      defense: 4,
+      cost: 5,
+      rarity: CardRarity.RARE,
+      description: '身披冰霜铠甲的骑士'
+    },
+    {
+      cardId: 'card_003',
+      name: '圣光牧师',
+      type: CardType.CREATURE,
+      attack: 1,
+      defense: 4,
+      cost: 3,
+      rarity: CardRarity.COMMON,
+      description: '能够治疗友军的牧师'
+    },
+    {
+      cardId: 'card_004',
+      name: '暗影刺客',
+      type: CardType.CREATURE,
+      attack: 5,
+      defense: 2,
+      cost: 4,
+      rarity: CardRarity.EPIC,
+      description: '隐藏在暗影中的致命刺客'
+    },
+    {
+      cardId: 'card_005',
+      name: '龙族守卫',
+      type: CardType.CREATURE,
+      attack: 6,
+      defense: 6,
+      cost: 7,
+      rarity: CardRarity.LEGENDARY,
+      description: '强大的龙族战士'
+    },
+    {
+      cardId: 'card_006',
+      name: '火球术',
+      type: CardType.SPELL,
+      attack: 4,
+      defense: 0,
+      cost: 2,
+      rarity: CardRarity.COMMON,
+      description: '造成4点伤害'
+    },
+    {
+      cardId: 'card_007',
+      name: '治疗术',
+      type: CardType.SPELL,
+      attack: 0,
+      defense: 0,
+      cost: 2,
+      rarity: CardRarity.COMMON,
+      description: '恢复5点生命值'
+    },
+    {
+      cardId: 'card_008',
+      name: '传奇之剑',
+      type: CardType.EQUIPMENT,
+      attack: 3,
+      defense: 1,
+      cost: 3,
+      rarity: CardRarity.RARE,
+      description: '为装备者增加3点攻击力'
     }
+  ];
 
-    const starterCards = [
-      {
-        cardId: 'card_001',
-        name: '火焰法师',
-        type: CardType.CREATURE,
-        attack: 3,
-        defense: 2,
-        cost: 3,
-        rarity: CardRarity.COMMON,
-        description: '一个掌握火焰魔法的法师'
-      },
-      {
-        cardId: 'card_002',
-        name: '冰霜骑士',
-        type: CardType.CREATURE,
-        attack: 4,
-        defense: 4,
-        cost: 5,
-        rarity: CardRarity.RARE,
-        description: '身披冰霜铠甲的骑士'
-      },
-      {
-        cardId: 'card_003',
-        name: '圣光牧师',
-        type: CardType.CREATURE,
-        attack: 1,
-        defense: 4,
-        cost: 3,
-        rarity: CardRarity.COMMON,
-        description: '能够治疗友军的牧师'
-      },
-      {
-        cardId: 'card_004',
-        name: '暗影刺客',
-        type: CardType.CREATURE,
-        attack: 5,
-        defense: 2,
-        cost: 4,
-        rarity: CardRarity.EPIC,
-        description: '隐藏在暗影中的致命刺客'
-      },
-      {
-        cardId: 'card_005',
-        name: '龙族守卫',
-        type: CardType.CREATURE,
-        attack: 6,
-        defense: 6,
-        cost: 7,
-        rarity: CardRarity.LEGENDARY,
-        description: '强大的龙族战士'
-      },
-      {
-        cardId: 'card_006',
-        name: '火球术',
-        type: CardType.SPELL,
-        attack: 4,
-        defense: 0,
-        cost: 2,
-        rarity: CardRarity.COMMON,
-        description: '造成4点伤害'
-      },
-      {
-        cardId: 'card_007',
-        name: '治疗术',
-        type: CardType.SPELL,
-        attack: 0,
-        defense: 0,
-        cost: 2,
-        rarity: CardRarity.COMMON,
-        description: '恢复5点生命值'
-      },
-      {
-        cardId: 'card_008',
-        name: '传奇之剑',
-        type: CardType.EQUIPMENT,
-        attack: 3,
-        defense: 1,
-        cost: 3,
-        rarity: CardRarity.RARE,
-        description: '为装备者增加3点攻击力'
+  async initializeCards(): Promise<void> {
+    try {
+      const count = await Card.countDocuments();
+      if (count > 0) {
+        console.log('Cards already initialized');
+        return;
       }
-    ];
 
-    await Card.insertMany(starterCards);
-    console.log('Cards initialized successfully');
+      const starterCards = this.defaultCards;
+      await Card.insertMany(starterCards);
+      console.log('Cards initialized successfully');
+    } catch (error) {
+      console.log('MongoDB not available, using default cards');
+    }
   }
 
   async getAllCards(): Promise<ICard[]> {
-    const cards = await Card.find();
-    return cards.map(card => this.convertToICard(card));
+    try {
+      const cards = await Card.find();
+      if (cards.length > 0) {
+        return cards.map(card => this.convertToICard(card));
+      }
+    } catch (error) {
+      console.log('Using default cards');
+    }
+    return this.defaultCards.map(card => this.convertToICard(card));
   }
 
   async getCardById(cardId: string): Promise<ICard | null> {
-    const card = await Card.findOne({ cardId });
-    return card ? this.convertToICard(card) : null;
+    try {
+      const card = await Card.findOne({ cardId });
+      if (card) return this.convertToICard(card);
+    } catch (error) {
+      console.log('Using default cards');
+    }
+    const defaultCard = this.defaultCards.find(c => c.cardId === cardId);
+    return defaultCard ? this.convertToICard(defaultCard) : null;
   }
 
   async getStarterDeck(): Promise<ICard[]> {

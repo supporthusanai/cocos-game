@@ -11,14 +11,19 @@ export const connectMongoDB = async (): Promise<void> => {
     console.log('MongoDB connected successfully');
   } catch (error) {
     console.error('MongoDB connection error:', error);
-    process.exit(1);
+    console.warn('Warning: Running without MongoDB. Some features may not work.');
+    // Don't exit in development mode
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1);
+    }
   }
 };
 
 export const redisClient = createClient({
   socket: {
     host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379')
+    port: parseInt(process.env.REDIS_PORT || '6379'),
+    reconnectStrategy: false  // 禁用自动重连
   }
 });
 
@@ -28,7 +33,11 @@ export const connectRedis = async (): Promise<void> => {
     console.log('Redis connected successfully');
   } catch (error) {
     console.error('Redis connection error:', error);
-    process.exit(1);
+    console.warn('Warning: Running without Redis. Using in-memory storage.');
+    // Don't exit in development mode
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1);
+    }
   }
 };
 

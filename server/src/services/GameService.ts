@@ -178,14 +178,27 @@ class GameService {
   }
 
   private async saveRoomToRedis(room: IGameRoom): Promise<void> {
-    await redisClient.set(`room:${room.id}`, JSON.stringify(room), {
-      EX: 3600
-    });
+    try {
+      if (redisClient.isOpen) {
+        await redisClient.set(`room:${room.id}`, JSON.stringify(room), {
+          EX: 3600
+        });
+      }
+    } catch (error) {
+      console.log('Redis not available, using in-memory storage');
+    }
   }
 
   private async loadRoomFromRedis(roomId: string): Promise<IGameRoom | null> {
-    const data = await redisClient.get(`room:${roomId}`);
-    return data ? JSON.parse(data) : null;
+    try {
+      if (redisClient.isOpen) {
+        const data = await redisClient.get(`room:${roomId}`);
+        return data ? JSON.parse(data) : null;
+      }
+    } catch (error) {
+      console.log('Redis not available, checking in-memory storage');
+    }
+    return null;
   }
 
   getRoom(roomId: string): IGameRoom | undefined {
