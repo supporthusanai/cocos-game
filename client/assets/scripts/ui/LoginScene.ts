@@ -22,6 +22,11 @@ export class LoginScene extends Component {
   start() {
     this.gameManager = GameManager.getInstance();
 
+    if (!this.gameManager) {
+      console.error('GameManager not initialized. Please add GameManager component to the scene.');
+      return;
+    }
+
     if (this.createRoomBtn) {
       this.createRoomBtn.node.on('click', this.onCreateRoom, this);
     }

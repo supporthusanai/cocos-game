@@ -102,6 +102,8 @@ export class GameManager extends Component {
   }
 
   onDestroy() {
-    this.networkManager.disconnect();
+    if (this.networkManager) {
+      this.networkManager.disconnect();
+    }
   }
 }

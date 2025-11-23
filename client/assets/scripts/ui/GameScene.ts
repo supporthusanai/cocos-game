@@ -38,6 +38,12 @@ export class GameScene extends Component {
 
   start() {
     this.gameManager = GameManager.getInstance();
+
+    if (!this.gameManager) {
+      console.error('GameManager not initialized. Please add GameManager component to the scene.');
+      return;
+    }
+
     this.scheduleUpdate();
   }
 
