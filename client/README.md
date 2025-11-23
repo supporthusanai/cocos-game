@@ -2,6 +2,10 @@
 
 基于 Cocos Creator 的卡牌游戏客户端。
 
+## ⚠️ 重要提示
+
+如果遇到 `Module "socket.io-client" not found` 错误，请查看 [SETUP.md](./SETUP.md) 文件获取详细的配置说明。
+
 ## 目录结构
 
 ```
@@ -37,12 +41,32 @@ client/
 npm install
 ```
 
+## Socket.IO 配置（重要！）
+
+Cocos Creator 不支持直接使用 npm 的 `socket.io-client` 包。需要通过以下方式之一引入：
+
+### 快速方法：使用 CDN
+
+项目已包含 `index.html` 文件，其中引入了 Socket.IO CDN：
+
+```html
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+```
+
+**在 Cocos Creator 中配置**：
+1. 打开 Cocos Creator
+2. 菜单：项目 -> 项目设置 -> 构建发布
+3. 找到 "自定义 Web 模板" 选项并配置
+
+详细步骤请查看 [SETUP.md](./SETUP.md)
+
 ## 使用 Cocos Creator 打开项目
 
-1. 启动 Cocos Creator
+1. 启动 Cocos Creator 3.8+
 2. 选择"打开项目"
 3. 选择 `client` 目录
 4. 等待项目加载完成
+5. 配置 Socket.IO（见上方说明）
 
 ## 核心组件
 

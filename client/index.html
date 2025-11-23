@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Card Game</title>
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,minimum-scale=1,maximum-scale=1,minimal-ui=true"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+    <meta name="format-detection" content="telephone=no"/>
+
+    <!-- Socket.IO Client Library -->
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js" crossorigin="anonymous"></script>
+
+    <style>
+        body, canvas, div {
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+        #GameDiv {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="GameDiv">
+        <canvas id="GameCanvas"></canvas>
+    </div>
+</body>
+</html>

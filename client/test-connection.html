@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网络连接测试</title>
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        #log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .log-entry.error {
+            color: #dc3545;
+        }
+        .log-entry.success {
+            color: #28a745;
+        }
+        .log-entry.info {
+            color: #17a2b8;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 卡牌游戏网络连接测试</h1>
+
+        <div id="statusDiv" class="status info">
+            等待连接...
+        </div>
+
+        <div>
+            <label>服务器地址：</label>
+            <input type="text" id="serverUrl" value="http://localhost:3000" />
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button id="connectBtn" onclick="testConnection()">连接服务器</button>
+            <button id="createRoomBtn" onclick="createRoom()" disabled>创建房间</button>
+            <button id="disconnectBtn" onclick="disconnect()" disabled>断开连接</button>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <label>用户名：</label>
+            <input type="text" id="username" value="TestUser" />
+            <label>房间ID：</label>
+            <input type="text" id="roomId" placeholder="输入房间ID加入" />
+            <button id="joinRoomBtn" onclick="joinRoom()" disabled>加入房间</button>
+        </div>
+
+        <h3>日志：</h3>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        let socket = null;
+        let currentRoom = null;
+
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const time = new Date().toLocaleTimeString();
+            entry.textContent = `[${time}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('statusDiv');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        function updateButtons(connected) {
+            document.getElementById('connectBtn').disabled = connected;
+            document.getElementById('createRoomBtn').disabled = !connected;
+            document.getElementById('joinRoomBtn').disabled = !connected;
+            document.getElementById('disconnectBtn').disabled = !connected;
+        }
+
+        function testConnection() {
+            const serverUrl = document.getElementById('serverUrl').value;
+
+            if (socket && socket.connected) {
+                addLog('已经连接到服务器', 'info');
+                return;
+            }
+
+            addLog(`正在连接到服务器: ${serverUrl}`, 'info');
+            updateStatus('正在连接...', 'info');
+
+            try {
+                socket = io(serverUrl, {
+                    transports: ['websocket'],
+                    reconnection: true
+                });
+
+                socket.on('connect', () => {
+                    addLog('✓ 成功连接到服务器！', 'success');
+                    updateStatus('已连接', 'success');
+                    updateButtons(true);
+                });
+
+                socket.on('disconnect', () => {
+                    addLog('✗ 与服务器断开连接', 'error');
+                    updateStatus('已断开', 'error');
+                    updateButtons(false);
+                });
+
+                socket.on('error', (error) => {
+                    addLog(`✗ Socket 错误: ${error}`, 'error');
+                    updateStatus('连接错误', 'error');
+                });
+
+                socket.on('connect_error', (error) => {
+                    addLog(`✗ 连接错误: ${error.message}`, 'error');
+                    updateStatus('连接失败', 'error');
+                    updateButtons(false);
+                });
+
+                socket.on('roomCreated', (room) => {
+                    currentRoom = room;
+                    addLog(`✓ 房间创建成功！房间ID: ${room.id}`, 'success');
+                    document.getElementById('roomId').value = room.id;
+                });
+
+                socket.on('gameStart', (room) => {
+                    currentRoom = room;
+                    addLog(`✓ 游戏开始！玩家数量: ${room.players.length}`, 'success');
+                });
+
+                socket.on('gameUpdate', (room) => {
+                    addLog(`游戏状态更新，当前回合: ${room.currentTurn + 1}`, 'info');
+                });
+
+            } catch (error) {
+                addLog(`✗ 连接失败: ${error.message}`, 'error');
+                updateStatus('连接失败', 'error');
+            }
+        }
+
+        function createRoom() {
+            if (!socket || !socket.connected) {
+                addLog('✗ 请先连接服务器', 'error');
+                return;
+            }
+
+            const username = document.getElementById('username').value || 'TestUser';
+            addLog(`正在创建房间，用户名: ${username}`, 'info');
+            socket.emit('createRoom', { username });
+        }
+
+        function joinRoom() {
+            if (!socket || !socket.connected) {
+                addLog('✗ 请先连接服务器', 'error');
+                return;
+            }
+
+            const roomId = document.getElementById('roomId').value;
+            const username = document.getElementById('username').value || 'TestUser';
+
+            if (!roomId) {
+                addLog('✗ 请输入房间ID', 'error');
+                return;
+            }
+
+            addLog(`正在加入房间: ${roomId}，用户名: ${username}`, 'info');
+            socket.emit('joinRoom', { roomId, username });
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+                currentRoom = null;
+                addLog('已断开连接', 'info');
+                updateStatus('未连接', 'error');
+                updateButtons(false);
+            }
+        }
+
+        // 页面加载时的提示
+        window.addEventListener('load', () => {
+            addLog('页面加载完成', 'success');
+            addLog('请确保后端服务器正在运行（cd server && npm run dev）', 'info');
+            addLog('点击"连接服务器"按钮开始测试', 'info');
+        });
+    </script>
+</body>
+</html>

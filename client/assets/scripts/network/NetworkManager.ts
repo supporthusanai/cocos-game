@@ -1,9 +1,11 @@
-import { io, Socket } from 'socket.io-client';
 import { IGameRoom, IGameAction } from '../types/GameTypes';
+
+// 声明全局 io 对象（通过 CDN 引入）
+declare const io: any;
 
 export class NetworkManager {
   private static instance: NetworkManager;
-  private socket: Socket | null = null;
+  private socket: any = null;
   private serverUrl: string = 'http://localhost:3000';
 
   private constructor() {}
@@ -17,6 +19,12 @@ export class NetworkManager {
 
   public connect(): void {
     if (this.socket?.connected) return;
+
+    // 检查 io 是否已加载
+    if (typeof io === 'undefined') {
+      console.error('Socket.IO client library not loaded. Please include it in index.html');
+      return;
+    }
 
     this.socket = io(this.serverUrl, {
       transports: ['websocket'],
