@@ -43,8 +43,6 @@ export class GameScene extends Component {
       console.error('GameManager not initialized. Please add GameManager component to the scene.');
       return;
     }
-
-    this.scheduleUpdate();
   }
 
   update(deltaTime: number) {
