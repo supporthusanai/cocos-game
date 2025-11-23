@@ -1,0 +1,20 @@
+{
+  "name": "card-game-client",
+  "version": "1.0.0",
+  "description": "Card game Cocos Creator client",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'Build with Cocos Creator'",
+    "dev": "echo 'Run Cocos Creator in development mode'"
+  },
+  "keywords": ["cocos", "card-game", "typescript"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "socket.io-client": "^4.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "typescript": "^5.3.3"
+  }
+}

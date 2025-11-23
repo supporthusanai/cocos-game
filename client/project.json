@@ -1,0 +1,6 @@
+{
+  "engine": "cocos-creator",
+  "packages": "packages",
+  "version": "3.8.0",
+  "name": "card-game"
+}
